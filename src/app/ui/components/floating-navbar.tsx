@@ -21,78 +21,60 @@ export const FloatingNav = ({
   className?: string;
 }) => {
   const { scrollYProgress } = useScroll();
-
-  const [visible, setVisible] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useMotionValueEvent(scrollYProgress, "change", (current) => {
     if (typeof current === "number") {
-      let direction = current! - scrollYProgress.getPrevious()!;
+      // Set a threshold (e.g., 0.05) to determine when to show/hide the navItems
+      const threshold = 0.05;
 
-      if (scrollYProgress.get() < 0.05) {
-        setVisible(false);
+      if (current > threshold) {
+        setScrolled(true);
       } else {
-        if (direction < 0) {
-          setVisible(true);
-        } else {
-          setVisible(false);
-        }
+        setScrolled(false);
       }
     }
   });
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{
-          opacity: 1,
-          x: -100,
-        }}
-        animate={{
-          x: visible ? 0 : -100,
-          opacity: visible ? 1 : 0,
-        }}
-        transition={{
-          duration: 0.3,
-          type: "tween",
-          ease: "easeInOut",
-        }}
-        className={cn(
-          "flex max-w-fit fixed top-10 inset-x-0 mx-auto border border-transparent dark:border-white/[0.2] rounded-full dark:bg-black bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-[5000] pr-2 pl-8 py-2 items-center justify-center space-x-4",
-          className
+    <div
+      className={cn(
+        "fixed top-10 inset-x-0 mx-auto z-[5000] flex justify-center",
+        className
+      )}
+    >
+      <AnimatePresence>
+        {scrolled && (
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center space-x-4"
+          >
+            {navItems.map((navItem, idx) => (
+              <motion.div
+                key={`link=${idx}`}
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -50, opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Link
+                  href={navItem.link}
+                  className="text-black dark:text-white"
+                >
+                  {navItem.name}
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
         )}
-      >
-        {/* Always visible Contact link */}
-        <Link
-          key="contact"
-          href={navItems[0].link} // Assuming first item is always Contact
-          className={cn(
-            "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500"
-          )}
-        >
-          <span className="block sm:hidden">{navItems[0].icon}</span>
-          <span className="hidden sm:block text-sm">{navItems[0].name}</span>
-        </Link>
-
-        {/* Remaining nav items with animation */}
-        {visible &&
-          navItems.slice(1).map((navItem: any, idx: number) => (
-            <Link
-              key={`link=${idx}`}
-              href={navItem.link}
-              className={cn(
-                "relative dark:text-neutral-50 items-center flex space-x-1 text-neutral-600 dark:hover:text-neutral-300 hover:text-neutral-500"
-              )}
-            >
-              <span className="block sm:hidden">{navItem.icon}</span>
-              <span className="hidden sm:block text-sm">{navItem.name}</span>
-            </Link>
-          ))}
-
-        <button className="border text-sm font-medium relative border-neutral-200 dark:border-white/[0.2] text-black dark:text-white px-4 py-2 rounded-full">
-          <span>Login</span>
-          <span className="absolute inset-x-0 w-1/2 mx-auto -bottom-px bg-gradient-to-r from-transparent via-blue-500 to-transparent h-px" />
-        </button>
+      </AnimatePresence>
+      <motion.div className="border text-sm font-medium relative border-neutral-200 dark:border-white/[0.2] text-black dark:text-white px-4 py-2 rounded-full bg-white dark:bg-black shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] z-[5000] ml-8">
+        <Link href="/contact-us">Contact Us</Link>
+        <span className="absolute inset-x-0 w-1/2 mx-auto -bottom-px bg-gradient-to-r from-transparent via-blue-500 to-transparent h-px" />
       </motion.div>
-    </AnimatePresence>
+    </div>
   );
 };
